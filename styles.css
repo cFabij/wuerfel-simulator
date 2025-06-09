@@ -1,0 +1,264 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  background: linear-gradient(135deg, #ff787a 0%, #000000 100%);
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #333;
+}
+
+.container {
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 20px;
+  padding: 2rem;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+  text-align: center;
+  max-width: 800px;
+  width: 90%;
+}
+
+h1 {
+  color: #333;
+  margin-bottom: 2rem;
+  font-size: 2.5rem;
+  font-weight: 300;
+}
+
+.controls {
+  margin-bottom: 2rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.input-group {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+label {
+  font-weight: 500;
+  color: #555;
+}
+
+input[type="number"] {
+  padding: 0.75rem 1rem;
+  border: 2px solid #ddd;
+  border-radius: 10px;
+  font-size: 1.1rem;
+  text-align: center;
+  width: 150px;
+  transition: border-color 0.3s ease;
+}
+
+input[type="number"]:focus {
+  outline: none;
+  border-color: #667eea;
+}
+
+.roll-btn {
+  background: linear-gradient(45deg, #ff787a, #000000);
+  color: white;
+  border: none;
+  padding: 1rem 2rem;
+  border-radius: 50px;
+  font-size: 1.2rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+  position: relative;
+  overflow: hidden;
+}
+
+.roll-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+}
+
+.roll-btn:active {
+  transform: translateY(0);
+}
+
+.roll-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.result {
+  margin-bottom: 2rem;
+}
+
+.result-number {
+  font-size: 3rem;
+  font-weight: bold;
+  color: #ff787a;
+  margin-bottom: 0.5rem;
+}
+
+.result-text {
+  color: #666;
+  font-size: 1.1rem;
+}
+
+.dice-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 2rem;
+  padding: 2rem 0;
+  perspective: 1000px;
+  min-height: 250px;
+}
+
+.dice {
+  position: relative;
+  width: 120px;
+  height: 120px;
+  transform-style: preserve-3d;
+  transition: transform 0.1s ease;
+}
+
+.dice-face {
+  position: absolute;
+  width: 120px;
+  height: 120px;
+  background: #fff;
+  border: 3px solid #333;
+  border-radius: 12px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 10rem;
+  font-weight: bold;
+  color: #333;
+  box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.dice-face::before {
+  content: attr(data-number);
+}
+
+/* Würfel-Seiten Positionierung - translateZ angepasst auf halbe Würfel-Größe */
+.dice-face.front {
+  transform: rotateY(0deg) translateZ(60px);
+}
+.dice-face.back {
+  transform: rotateY(180deg) translateZ(60px);
+}
+.dice-face.right {
+  transform: rotateY(90deg) translateZ(60px);
+}
+.dice-face.left {
+  transform: rotateY(-90deg) translateZ(60px);
+}
+.dice-face.top {
+  transform: rotateX(90deg) translateZ(60px);
+}
+.dice-face.bottom {
+  transform: rotateX(-90deg) translateZ(60px);
+}
+
+/* Würfel-Punkte für visuelle Darstellung */
+.dice-face[data-number="1"]::before {
+  content: "⚀";
+}
+.dice-face[data-number="2"]::before {
+  content: "⚁";
+}
+.dice-face[data-number="3"]::before {
+  content: "⚂";
+}
+.dice-face[data-number="4"]::before {
+  content: "⚃";
+}
+.dice-face[data-number="5"]::before {
+  content: "⚄";
+}
+.dice-face[data-number="6"]::before {
+  content: "⚅";
+}
+
+/* Animation Keyframes - UNVERÄNDERT */
+@keyframes rollDice {
+  0% {
+    transform: rotateX(0deg) rotateY(0deg);
+  }
+  25% {
+    transform: rotateX(360deg) rotateY(180deg);
+  }
+  50% {
+    transform: rotateX(720deg) rotateY(360deg);
+  }
+  75% {
+    transform: rotateX(1080deg) rotateY(540deg);
+  }
+  100% {
+    transform: rotateX(1440deg) rotateY(720deg);
+  }
+}
+
+.dice.rolling {
+  animation: rollDice 2s cubic-bezier(0.17, 0.67, 0.12, 0.99);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .container {
+    padding: 1.5rem;
+    margin: 1rem;
+  }
+
+  h1 {
+    font-size: 2rem;
+  }
+
+  .dice {
+    width: 90px;
+    height: 90px;
+  }
+
+  .dice-face {
+    width: 90px;
+    height: 90px;
+    font-size: 7rem;
+    border-radius: 10px;
+  }
+
+  /* Mobile Würfel-Seiten Positionierung - translateZ auf 45px angepasst */
+  .dice-face.front {
+    transform: rotateY(0deg) translateZ(45px);
+  }
+  .dice-face.back {
+    transform: rotateY(180deg) translateZ(45px);
+  }
+  .dice-face.right {
+    transform: rotateY(90deg) translateZ(45px);
+  }
+  .dice-face.left {
+    transform: rotateY(-90deg) translateZ(45px);
+  }
+  .dice-face.top {
+    transform: rotateX(90deg) translateZ(45px);
+  }
+  .dice-face.bottom {
+    transform: rotateX(-90deg) translateZ(45px);
+  }
+
+  .dice-container {
+    gap: 1rem;
+    min-height: 200px;
+  }
+}
