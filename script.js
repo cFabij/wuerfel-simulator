@@ -49,22 +49,29 @@ class DiceSimulator {
   }
 
   createSingleDice() {
-    const dice = document.createElement("div");
-    dice.className = "dice";
+  const dice = document.createElement("div");
+  dice.className = "dice";
 
-    // Erstelle alle 6 Seiten des Würfels
-    const faces = ["front", "back", "right", "left", "top", "bottom"];
-    const numbers = [1, 6, 3, 4, 2, 5]; // Korrekte Würfel-Anordnung
+  const faces = ["front", "back", "right", "left", "top", "bottom"];
+  const numbers = [1, 6, 3, 4, 2, 5];
 
-    faces.forEach((face, index) => {
-      const faceElement = document.createElement("div");
-      faceElement.className = `dice-face ${face}`;
-      faceElement.setAttribute("data-number", numbers[index]);
-      dice.appendChild(faceElement);
-    });
+  faces.forEach((face, index) => {
+    const faceElement = document.createElement("div");
+    faceElement.className = `dice-face ${face}`;
+    faceElement.setAttribute("data-number", numbers[index]);
+    
+    // Erstelle die entsprechende Anzahl von Punkten
+    for (let i = 0; i < numbers[index]; i++) {
+      const dot = document.createElement("div");
+      dot.className = "dice-dot";
+      faceElement.appendChild(dot);
+    }
+    
+    dice.appendChild(faceElement);
+  });
 
-    return dice;
-  }
+  return dice;
+}
 
   setInitialResult() {
     this.resultNumber.textContent = "1";
@@ -174,6 +181,8 @@ class DiceSimulator {
     }
   }
 }
+
+
 
 // Initialisiere die Anwendung
 document.addEventListener("DOMContentLoaded", () => {
