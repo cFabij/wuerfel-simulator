@@ -60,7 +60,6 @@ class DiceSimulator {
       faceElement.className = `dice-face ${face}`;
       faceElement.setAttribute("data-number", numbers[index]);
       
-      // Erstelle die entsprechende Anzahl von Punkten
       for (let i = 0; i < numbers[index]; i++) {
         const dot = document.createElement("div");
         dot.className = "dice-dot";
@@ -92,13 +91,9 @@ class DiceSimulator {
     this.rollButton.disabled = true;
     this.resultText.textContent = "Würfel rollen...";
 
-    // Generiere Zufallsergebnis
     const result = this.generateRandomResult(maxNumber);
     
-    // Starte Animation
     await this.animateDice(result);
-
-    // Zeige Ergebnis
     this.showResult(result, maxNumber);
 
     this.isRolling = false;
@@ -112,147 +107,74 @@ class DiceSimulator {
       return [Math.floor(Math.random() * maxNumber) + 1];
     }
 
-    // Für mehrere Würfel: Generiere echte Zufallskombination
-    return this.generateValidDiceCombination(maxNumber, diceCount);
+    return this.generateEfficientDiceCombination(maxNumber, diceCount);
   }
 
   /**
-   * Neue, verbesserte Methode für echte Zufallsverteilung
+   * Hocheffiziente Methode für Würfel-Kombinationen
+   * Laufzeit: O(n) statt O(6^n)
    */
-  generateValidDiceCombination(maxNumber, diceCount) {
-    const minSum = diceCount; // Minimum: alle Würfel zeigen 1
-    const maxSum = diceCount * 6; // Maximum: alle Würfel zeigen 6
+  generateEfficientDiceCombination(maxNumber, diceCount) {
+    // Bestimme die Zielzahl
+    const minPossible = diceCount;
+    const maxPossible = Math.min(maxNumber, diceCount * 6);
+    const targetSum = Math.floor(Math.random() * (maxPossible - minPossible + 1)) + minPossible;
     
-    // Begrenze das Ziel auf mögliche Werte
-    const actualMaxNumber = Math.min(maxNumber, maxSum);
-    const targetSum = Math.floor(Math.random() * (actualMaxNumber - minSum + 1)) + minSum;
+    // Initialisiere alle Würfel mit 1
+    const result = new Array(diceCount).fill(1);
+    let remainingSum = targetSum - diceCount;
     
-    // Generiere alle möglichen Kombinationen für diese Summe
-    const validCombinations = this.getAllValidCombinations(targetSum, diceCount);
-    
-    // Wähle zufällig eine Kombination aus
-    const randomIndex = Math.floor(Math.random() * validCombinations.length);
-    return validCombinations[randomIndex];
-  }
-
-  /**
-   * Generiert alle möglichen Würfel-Kombinationen für eine gegebene Summe
-   */
-  getAllValidCombinations(targetSum, diceCount) {
-    const combinations = [];
-    
-    // Rekursive Funktion zum Generieren aller Kombinationen
-    const generateCombinations = (remaining, diceLeft, currentCombo) => {
-      if (diceLeft === 0) {
-        if (remaining === 0) {
-          combinations.push([...currentCombo]);
-        }
-        return;
-      }
+    // Verteile die verbleibende Summe zufällig
+    while (remainingSum > 0) {
+      // Wähle zufälligen Würfel
+      const diceIndex = Math.floor(Math.random() * diceCount);
       
-      // Für jeden möglichen Würfel-Wert (1-6)
-      for (let value = 1; value <= 6; value++) {
-        const newRemaining = remaining - value;
-        const minPossible = diceLeft - 1; // Minimum für verbleibende Würfel
-        const maxPossible = (diceLeft - 1) * 6; // Maximum für verbleibende Würfel
-        
-        // Prüfe, ob diese Kombination noch möglich ist
-        if (newRemaining >= minPossible && newRemaining <= maxPossible) {
-          currentCombo.push(value);
-          generateCombinations(newRemaining, diceLeft - 1, currentCombo);
-          currentCombo.pop();
-        }
+      // Bestimme, wie viel wir hinzufügen können
+      const maxAdd = Math.min(remainingSum, 6 - result[diceIndex]);
+      
+      if (maxAdd > 0) {
+        // Füge zufällige Menge hinzu (1 bis maxAdd)
+        const addAmount = Math.floor(Math.random() * maxAdd) + 1;
+        result[diceIndex] += addAmount;
+        remainingSum -= addAmount;
       }
-    };
-    
-    generateCombinations(targetSum, diceCount, []);
-    return combinations;
-  }
-
-  /**
-   * Alternative, performantere Methode für große Würfel-Anzahlen
-   */
-  generateValidDiceCombinationFast(maxNumber, diceCount) {
-    const minSum = diceCount;
-    const maxSum = Math.min(maxNumber, diceCount * 6);
-    const targetSum = Math.floor(Math.random() * (maxSum - minSum + 1)) + minSum;
-    
-    // Beginne mit zufälligen Werten für jeden Würfel
-    const result = [];
-    for (let i = 0; i < diceCount; i++) {
-      result[i] = Math.floor(Math.random() * 6) + 1;
     }
     
-    // Adjustiere die Werte, um die Zielsumme zu erreichen
-    let currentSum = result.reduce((a, b) => a + b, 0);
+    // Mische die Reihenfolge für zusätzliche Zufälligkeit
+    return this.shuffleArray(result);
+  }
+
+  /**
+   * Alternative Methode: Direkte Würfel-Simulation
+   * Simuliert echtes Würfeln bis gültiges Ergebnis
+   */
+  generateRealisticDiceCombination(maxNumber, diceCount) {
     let attempts = 0;
-    const maxAttempts = 100;
+    const maxAttempts = 1000;
     
-    while (currentSum !== targetSum && attempts < maxAttempts) {
-      const difference = targetSum - currentSum;
-      
-      if (difference > 0) {
-        // Wir brauchen mehr - finde einen Würfel, der erhöht werden kann
-        const candidates = [];
-        for (let i = 0; i < diceCount; i++) {
-          if (result[i] < 6) candidates.push(i);
-        }
-        if (candidates.length > 0) {
-          const randomIndex = candidates[Math.floor(Math.random() * candidates.length)];
-          const increase = Math.min(difference, 6 - result[randomIndex]);
-          result[randomIndex] += increase;
-        }
-      } else {
-        // Wir haben zu viel - finde einen Würfel, der reduziert werden kann
-        const candidates = [];
-        for (let i = 0; i < diceCount; i++) {
-          if (result[i] > 1) candidates.push(i);
-        }
-        if (candidates.length > 0) {
-          const randomIndex = candidates[Math.floor(Math.random() * candidates.length)];
-          const decrease = Math.min(-difference, result[randomIndex] - 1);
-          result[randomIndex] -= decrease;
-        }
+    while (attempts < maxAttempts) {
+      // Würfle jeden Würfel einzeln
+      const result = [];
+      for (let i = 0; i < diceCount; i++) {
+        result.push(Math.floor(Math.random() * 6) + 1);
       }
       
-      currentSum = result.reduce((a, b) => a + b, 0);
+      const sum = result.reduce((a, b) => a + b, 0);
+      
+      // Prüfe, ob das Ergebnis gültig ist
+      if (sum <= maxNumber) {
+        return result;
+      }
+      
       attempts++;
     }
     
-    // Falls wir die exakte Summe nicht erreichen konnten, verwende Fallback
-    if (currentSum !== targetSum) {
-      return this.fallbackDistribution(targetSum, diceCount);
-    }
-    
-    // Mische das Array für zusätzliche Zufälligkeit
-    return this.shuffleArray(result);
+    // Fallback: Verwende effiziente Methode
+    return this.generateEfficientDiceCombination(maxNumber, diceCount);
   }
 
   /**
-   * Fallback für seltene Fälle
-   */
-  fallbackDistribution(targetSum, diceCount) {
-    const result = new Array(diceCount).fill(1);
-    let remaining = targetSum - diceCount;
-    
-    while (remaining > 0) {
-      const availableIndices = result
-        .map((val, idx) => val < 6 ? idx : -1)
-        .filter(idx => idx !== -1);
-      
-      if (availableIndices.length === 0) break;
-      
-      const randomIndex = availableIndices[Math.floor(Math.random() * availableIndices.length)];
-      const maxIncrease = Math.min(remaining, 6 - result[randomIndex]);
-      result[randomIndex] += maxIncrease;
-      remaining -= maxIncrease;
-    }
-    
-    return this.shuffleArray(result);
-  }
-
-  /**
-   * Mischt ein Array zufällig
+   * Mischt Array in O(n) Zeit
    */
   shuffleArray(array) {
     const shuffled = [...array];
@@ -303,7 +225,6 @@ class DiceSimulator {
   }
 }
 
-// Initialisiere die Anwendung
 document.addEventListener("DOMContentLoaded", () => {
   new DiceSimulator();
 });
